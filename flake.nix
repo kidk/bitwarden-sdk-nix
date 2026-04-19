@@ -16,7 +16,10 @@
 
     forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
-    pkgsFor = system: nixpkgs.legacyPackages.${system};
+    pkgsFor = system: import nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+    };
   in
   {
     packages = forAllSystems (system:
