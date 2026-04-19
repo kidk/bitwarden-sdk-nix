@@ -35,6 +35,20 @@ python3Packages.buildPythonPackage rec {
   sourceRoot = "source/languages/python";
   cargoRoot = "../..";
 
+  postPatch = ''
+    # Maturin refuses to bundle license files that live outside the Python
+    # project root (languages/python/).  The bitwarden-py crate inherits
+    # license-file from the workspace, which resolves to the repo-root
+    # LICENSE — outside the project root.
+    # Fix: copy LICENSE *into* languages/python/ (the project root) and
+    # point the crate at it via a relative path from crates/bitwarden-py/.
+    cp ../../LICENSE ./LICENSE
+    chmod +w ../../crates/bitwarden-py
+    substituteInPlace ../../crates/bitwarden-py/Cargo.toml \
+      --replace-warn 'license-file.workspace = true' \
+                     'license-file = "../../languages/python/LICENSE"'
+  '';
+
   nativeBuildInputs = [
     rustPlatform.cargoSetupHook
     rustPlatform.maturinBuildHook
